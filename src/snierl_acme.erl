@@ -14,7 +14,7 @@
 %% acmerl_challenge callbacks:
 -export([challenge_type/0, deploy/2, remove/2]).
 %% gen_statem
--export([init/1, callback_mode/0, handle_event/4, start_link/0, terminate/3]).
+-export([init/1, callback_mode/0, handle_event/4, start_link/0]).
 
 -ignore_xref({start_link, 0}).
 
@@ -76,9 +76,6 @@ start_link() -> gen_statem:start_link({local, ?SERVER}, ?MODULE, [], []).
 callback_mode() -> handle_event_function.
 
 
-terminate(_,_,_) -> dump_to_dets().
-
-
 init([]) -> {ok, undefined, #{ alpn_validation => #{} }, 0}.
 
 
@@ -111,7 +108,7 @@ handle_event({call, From}, {deploy, #{ identifier := BinName
 handle_event(cast, {remove, Name}, _State, #{ alpn_validation := V } = M) ->
     {keep_state, M#{ alpn_validation => maps:remove(Name, V) }};
 handle_event(cast, {insert, {Name, Map}}, _State, _M) ->
-    do_insert(Name, Map),
+    dump_to_dets(do_insert(Name, Map)),
     keep_state_and_data.
 
 do_insert(Name, Map) ->
@@ -123,7 +120,7 @@ do_insert1({Name, #{ hs_opts := acme, hs_extra := Extra}},
     ets:insert(?TAB, {Name, Map#{ hs_opts => extra_hs_opts(Extra, Opts) }});
 do_insert1({Name, #{ hs_opts := acme }}, Map) ->
     ets:insert(?TAB, {Name, Map});
-do_insert1(_,_) -> true.
+do_insert1(_,_) -> false.
 
 
 extra_hs_opts([], Opts) -> Opts;
@@ -220,7 +217,9 @@ init_table() ->
     ?TAB = dets:to_ets(?TAB, ?TAB),
     dets:close(?TAB).
 
-dump_to_dets() ->
+
+dump_to_dets(false) -> ok;
+dump_to_dets(true) ->
     {ok, DetsF} = application:get_env(acme_certs_dets),
     {ok, ?TAB} = dets:open_file(?TAB, [{file, DetsF}, {repair, force}]),
     ?TAB = ets:to_dets(?TAB,?TAB),
