@@ -59,8 +59,8 @@ for all entries in sni_hosts that have hs_opts set to acme:
 ("www.example.com", "example.com" and "special.example.com")
 
 if a certificate does not exist in the dets, or the certificates expiry date is
-more than 7 days in the future, snierl will request a certificate from
-letsencrypt (unsing the tls-alpn-01 challenge) and store it in the dets file.
+less than 7 days in the future, snierl will request a certificate from
+letsencrypt (using the tls-alpn-01 challenge) and store it in the dets file.
 
 entries in dets that do not have a matching entry in the sni_hosts application
 environment are removed from dets.
