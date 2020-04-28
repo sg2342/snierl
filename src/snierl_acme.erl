@@ -144,7 +144,8 @@ extra_hs_opts1({cacerts, L}, Opts0) ->
 
 
 check_for_action(#{ account := Account} = M) ->
-    Cutoff = calendar:date_to_gregorian_days(date()) - 7,
+    Seconds = calendar:datetime_to_gregorian_seconds({date(), time()}),
+    Cutoff = Seconds + 60 * 60 * 24 * 7,
     {ok, L0} = application:get_env(sni_hosts),
     L = [ Name || {Name, #{ hs_opts := acme } } <- L0 ],
     check_for_action1(ets:first(?TAB), Cutoff, Account, L),
