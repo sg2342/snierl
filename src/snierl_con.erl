@@ -49,8 +49,8 @@ tls_accept(_) -> stop.
 
 tls_accept1(HsSock, { HostName, #{ hs_opts := acme } = M}) ->
     tls_accept1(HsSock, snierl_acme:set_hs_opts(HostName, M));
-tls_accept1(HsSock, {_HostName, #{ hs_opts := Opts } = M}) ->
-    tls_accept2(ssl:handshake_continue(HsSock, Opts), M);
+tls_accept1(HsSock, {HostName, #{ hs_opts := Opts } = M}) ->
+    tls_accept2(ssl:handshake_continue(HsSock, Opts), M#{ sni => HostName });
 tls_accept1(_HsSock, false) -> stop.
 
 tls_accept2({ok, Tls}, #{ ext := _Ext } = M) ->
@@ -67,11 +67,13 @@ tls_accept3({error, no_peercert}, Tls, #{ dst := Dst } = M) ->
 tls_accept3(_, _, _) -> stop.
 
 
-proxy(Tls, {Module, #{} = Map}, #{ hs_opts := HsOpts }) when is_atom(Module) ->
-    Module:proxy(Map#{tls => Tls, hs_opts => HsOpts}),
+proxy(Tls, {Module, #{} = Map}, #{ hs_opts := HsOpts, sni := HostName })
+  when is_atom(Module) ->
+    Module:proxy(Map#{tls => Tls, hs_opts => HsOpts, sni => HostName }),
     stop;
-proxy(Tls, Module, #{ hs_opts := HsOpts }) when is_atom(Module) ->
-    Module:proxy(#{tls => Tls, hs_opts => HsOpts}),
+proxy(Tls, Module, #{ hs_opts := HsOpts, sni := HostName })
+  when is_atom(Module) ->
+    Module:proxy(#{tls => Tls, hs_opts => HsOpts, sni => HostName }),
     stop;
 proxy(Tls, {_Addr, _Port} = Dst, #{ hs_opts := HsOpts }) ->
     snierl_proxy:proxy(#{ tls => Tls, hs_opts => HsOpts, dst => Dst }),
