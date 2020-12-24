@@ -16,7 +16,7 @@ with the following snierl application environment
 
 ~~~
 [{snierl
- ,[{ listen_port, 443 } %% listen on https port (default is 5555)
+ ,[{ listen, [{443, [inet]}, {443, [inet6]}]} %% listen on https port (default is 5555)
   ,{ acme_directory_url %% letsencrypt production url (default is staging)
    , <<"https://acme-v02.api.letsencrypt.org/directory">> }
   ,{ acme_account_file  %% letsencrypt account file location

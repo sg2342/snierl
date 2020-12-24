@@ -15,7 +15,7 @@ init([]) ->
     Flags = #{ strategy => one_for_one },
     {ok, NumAcceptors} = application:get_env(num_acceptors),
     Specs = [ #{ id => Id
-	       , start => { snierl_acceptor, start_link, [] }
+	       , start => { snierl_acceptor, start_link, [Id] }
 	       , modules => [ snierl_acceptor ] }
 	      || Id <- lists:seq(1, NumAcceptors) ],
     {ok, {Flags, Specs}}.

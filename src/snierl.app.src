@@ -14,7 +14,8 @@
 		  , acmerl
 		  , inets
 		  , jsone ]}
- , {env, [ { listen_port, 5555 }
+ , {env, [ { listen, [ {5555, [inet]}
+		     , {5555, [inet6]} ] }
 	 , { acme_account_file, "/tmp/acme_account.json" }
 	 , { acme_certs_dets, "/tmp/acme_certs.dets" }
 	 , { acme_directory_url
