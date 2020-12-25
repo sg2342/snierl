@@ -155,8 +155,9 @@ check_for_action1('$end_of_table', _Cutoff, Account, Hosts) ->
     lists:foreach(fun(H) -> acme_worker(Account, H) end, Hosts);
 check_for_action1(H, Cutoff, Account, Hosts0) ->
     Maybe = lists:member(H, Hosts0),
+    Next = ets:next(?TAB, H),
     Hosts = check_for_action2(Maybe, H, Cutoff, Account, Hosts0),
-    check_for_action1(ets:next(?TAB, H), Cutoff, Account, Hosts).
+    check_for_action1(Next, Cutoff, Account, Hosts).
 
 check_for_action2(false, H, _, _, Hosts) -> ets:delete(?TAB, H), Hosts;
 check_for_action2(true, H, Cutoff, Account, Hosts) ->
