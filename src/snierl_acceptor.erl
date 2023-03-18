@@ -1,6 +1,6 @@
 -module(snierl_acceptor).
 
--behavior(gen_statem).
+-behaviour(gen_statem).
 
 -export([init/1, callback_mode/0, handle_event/4, start_link/1]).
 
