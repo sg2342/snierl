@@ -1,44 +1,55 @@
 %% -*- erlang -*-
-{application, snierl,
- [ {description, "SNI proxy"}
- , {vsn, git}
- , {registered, [ snierl_sup
-		, snierl_listener
-		, snierl_acceptor_sup
-		, snierl_con_sup
-		, snierl_proxy_sup]}
- , {mod, {snierl_app, []}}
- , {applications, [ kernel
-		  , stdlib
-		  , ssl
-		  , acmerl
-		  , inets
-		  , jsone ]}
- , {env, [ { listen, [ {5555, [inet]}
-		     , {5555, [inet6]} ] }
-	 , { acme_account_file, "/tmp/acme_account.json" }
-	 , { acme_certs_dets, "/tmp/acme_certs.dets" }
-	 , { acme_directory_url
-	   , <<"https://acme-staging-v02.api.letsencrypt.org/directory">> }
-	 , { num_acceptors, 2 }
-	 , { sni_hosts, [] }
-	 , { tls_opts, [ {secure_renegotiate, true}
-		       , {client_renegotiation, false}
-		       , {reuse_sessions, false}
-		       , {reuseaddr, true}
-		       , {handshake, hello}
-		       , {versions, ['tlsv1.3', 'tlsv1.2']} ]} ]}
- , {modules, [ snierl_app
-	     , snierl_sup
-	     , snierl_listener
-	     , snierl_acceptor_sup
-	     , snierl_acceptor
-	     , snierl_con_sup
-	     , snierl_con
-	     , snierl_proxy_sup
-	     , snierl_proxy
-	     , snierl_acme
-	     , snierl_crts ]}
- , {licenses, ["Apache 2.0"]}
- , {links, []}
- ]}.
+{application, snierl, [
+    {description, "SNI proxy"},
+    {vsn, git},
+    {registered, [
+        snierl_sup,
+        snierl_listener,
+        snierl_acceptor_sup,
+        snierl_con_sup,
+        snierl_proxy_sup
+    ]},
+    {mod, {snierl_app, []}},
+    {applications, [
+        kernel,
+        stdlib,
+        ssl,
+        acmerl,
+        inets,
+        jsone
+    ]},
+    {env, [
+        {listen, [
+            {5555, [inet]},
+            {5555, [inet6]}
+        ]},
+        {acme_account_file, "/tmp/acme_account.json"},
+        {acme_certs_dets, "/tmp/acme_certs.dets"},
+        {acme_directory_url, <<"https://acme-staging-v02.api.letsencrypt.org/directory">>},
+        {num_acceptors, 2},
+        {sni_hosts, []},
+        {tls_opts, [
+            {secure_renegotiate, true},
+            {client_renegotiation, false},
+            {reuse_sessions, false},
+            {reuseaddr, true},
+            {handshake, hello},
+            {versions, ['tlsv1.3', 'tlsv1.2']}
+        ]}
+    ]},
+    {modules, [
+        snierl_app,
+        snierl_sup,
+        snierl_listener,
+        snierl_acceptor_sup,
+        snierl_acceptor,
+        snierl_con_sup,
+        snierl_con,
+        snierl_proxy_sup,
+        snierl_proxy,
+        snierl_acme,
+        snierl_crts
+    ]},
+    {licenses, ["Apache 2.0"]},
+    {links, []}
+]}.
