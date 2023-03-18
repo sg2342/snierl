@@ -8,6 +8,11 @@ Build
 
     $ rebar3 compile
 
+Test
+----
+
+
+    $ rebar3 as test do dialyzer,xref,fmt,lint
 
 Use
 -----
@@ -15,36 +20,56 @@ Use
 with the following snierl application environment
 
 ~~~
-[{snierl
- ,[{ listen, [{443, [inet]}, {443, [inet6]}]} %% listen on https port (default is 5555)
-  ,{ acme_directory_url %% letsencrypt production url (default is staging)
-   , <<"https://acme-v02.api.letsencrypt.org/directory">> }
-  ,{ acme_account_file  %% letsencrypt account file location
-   , "/var/db/snierl/account.json" }
-  ,{ acme_certs_dets    %% storage for letsencrypt signed certs (and keys)
-   , "/var/db/snierl/acme_certs.dets" }
-  ,{ sni_hosts          %% SNI handshake options and destinations
-   ,[{ "www.example.com"
-     , #{ hs_opts => acme
-        , dst => {"localhost", 8080} } }
-    ,{"example.com"
-     , #{ hs_opts => acme
-        , dst => { snierl_proxy, #{ dst => {"localhost", 8080} } } } }
-    ,{"special.example.com"
-     , #{ hs_opts => acme
-        , hs_extra => [ { verify, verify_peer }
-                      , { cacertfile, "/var/db/snierl/special_client_ca.crt" }
-                      , { vail_if_no_peer_cert, false } ]
-        , dst => {"localhost", 8080}
-        , ext => #{ oid => {1,3,6,1,4,1,32473,23,42}
-                  , dsts => [ { <<4, 3, "foo">>, {"foo.special", 80} }
-                            , { <<4, 3, "bar">>, bar_proxy_mod }
-			    , { <<4, 6, "foobar">>, {foobar_proxy, #{a => 1} } }
-                            ] } } }
-    ,{"private.example.com"
-     , #{ hs_opts => [{certfile, "/var/db/snierl/private.crt"}
-                      {keyfile, "/var/db/snierl/private.key"}]
-        , dst => { snierl_proxy, {{127,0,0,1}, 7474 } } } } ] } ] } ].
+[
+    {snierl,
+        %% listen on https port (default is 5555)
+        [
+            {listen, [{443, [inet]}, {443, [inet6]}]},
+            %% letsencrypt production url (default is staging)
+            {acme_directory_url, <<"https://acme-v02.api.letsencrypt.org/directory">>},
+            %% letsencrypt account file location
+            {acme_account_file, "/var/db/snierl/account.json"},
+            %% storage for letsencrypt signed certs (and keys)
+            {acme_certs_dets, "/var/db/snierl/acme_certs.dets"},
+            %% SNI handshake options and destinations
+            {sni_hosts, [
+                {"www.example.com", #{
+                    hs_opts => acme,
+                    dst => {"localhost", 8080}
+                }},
+                {"example.com", #{
+                    hs_opts => acme,
+                    dst => {snierl_proxy, #{dst => {"localhost", 8080}}}
+                }},
+                {"special.example.com", #{
+                    hs_opts => acme,
+                    hs_extra => [
+                        {verify, verify_peer},
+                        {cacertfile, "/var/db/snierl/special_client_ca.crt"},
+                        {vail_if_no_peer_cert, false}
+                    ],
+                    dst => {"localhost", 8080},
+                    ext => #{
+                        oid => {1, 3, 6, 1, 4, 1, 32473, 23, 42},
+                        dsts => [
+                            {<<4, 3, "foo">>, {"foo.special", 80}},
+                            {<<4, 3, "bar">>, bar_proxy_mod},
+                            {<<4, 6, "foobar">>, {foobar_proxy, #{a => 1}}}
+                        ]
+                    }
+                }},
+                {"private.example.com", #{
+                    hs_opts => [
+                        {certfile, "/var/db/snierl/private.crt"},
+                        {keyfile, "/var/db/snierl/private.key"}
+                    ],
+                    dst => {
+                        snierl_proxy, {{127, 0, 0, 1}, 7474}
+                    }
+                }}
+            ]}
+        ]}
+].
 ~~~
 
 acme interaction:
