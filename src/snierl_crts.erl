@@ -30,7 +30,7 @@ of_pem(PemBin, Host) ->
 
 -define(ALPN_EXT_ID, {1, 3, 6, 1, 5, 5, 7, 1, 31}).
 
--spec alpn(Key :: #'RSAPrivateKey'{}, Host :: string(), KeyAuth :: binary()) ->
+-spec alpn(Key :: public_key:rsa_private_key(), Host :: string(), KeyAuth :: binary()) ->
     DERCert :: binary().
 alpn(Key, Host, KeyAuth) ->
     Subject =
@@ -86,7 +86,7 @@ alpn(Key, Host, KeyAuth) ->
     },
     public_key:pkix_sign(TBS, Key).
 
--spec csr(Key :: #'RSAPrivateKey'{}, Host :: string()) ->
+-spec csr(Key :: public_key:rsa_private_key(), Host :: string()) ->
     CSR :: binary().
 csr(Key, Host) ->
     A = #'AttributePKCS-10'{
