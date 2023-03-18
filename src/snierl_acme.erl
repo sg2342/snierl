@@ -82,10 +82,8 @@ init([]) -> {ok, undefined, #{ alpn_validation => #{} }, 0}.
 handle_event(timeout, _, _State, M) ->
     Key = public_key:generate_key({rsa, 2048, 65537}),
     KeyDER = {'RSAPrivateKey', public_key:der_encode('RSAPrivateKey', Key)},
-    {ok, Account} = account(application:get_env(acme_account_file)),
     init_table(),
-    check_for_action(M#{ account => Account
-		       , alpn_key => Key
+    check_for_action(M#{ alpn_key => Key
 		       , alpn_key_der => KeyDER });
 handle_event(state_timeout, _, _State, M) -> check_for_action(M);
 handle_event({call, From}, {alpn_lookup, Name}, _State,
@@ -149,7 +147,15 @@ check_for_action(#{ account := Account} = M) ->
     {ok, L0} = application:get_env(sni_hosts),
     L = [ Name || {Name, #{ hs_opts := acme } } <- L0 ],
     check_for_action1(ets:first(?TAB), Cutoff, Account, L),
-    {keep_state, M, [{state_timeout, timer:hours(1), check}]}.
+    {keep_state, M, [{state_timeout, timer:hours(1), check}]};
+check_for_action(#{} = M) ->
+    {ok, L} = application:get_env(sni_hosts),
+    case [ Name || {Name, #{ hs_opts := acme }} <- L ] of
+	[] -> {keep_state, M};
+	[_|_] ->
+	    {ok, Account} = account(application:get_env(acme_account_file)),
+	    check_for_action(M#{account => Account})
+    end.
 
 check_for_action1('$end_of_table', _Cutoff, Account, Hosts) ->
     lists:foreach(fun(H) -> acme_worker(Account, H) end, Hosts);
