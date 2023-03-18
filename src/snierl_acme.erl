@@ -264,8 +264,7 @@ new_client() ->
     }).
 
 init_table() ->
-    {ok, DetsF} = application:get_env(acme_certs_dets),
-    {ok, ?TAB} = dets:open_file(?TAB, [{file, DetsF}, {repair, force}]),
+    {ok, ?TAB} = open_dets(),
     ?TAB = ets:new(?TAB, [set, named_table, protected]),
     ?TAB = dets:to_ets(?TAB, ?TAB),
     dets:close(?TAB).
@@ -273,7 +272,10 @@ init_table() ->
 dump_to_dets(false) ->
     ok;
 dump_to_dets(true) ->
-    {ok, DetsF} = application:get_env(acme_certs_dets),
-    {ok, ?TAB} = dets:open_file(?TAB, [{file, DetsF}, {repair, force}]),
+    {ok, ?TAB} = open_dets(),
     ?TAB = ets:to_dets(?TAB, ?TAB),
     dets:close(?TAB).
+
+open_dets() ->
+    {ok, DetsF} = application:get_env(acme_certs_dets),
+    dets:open_file(?TAB, [{file, DetsF}, {repair, force}]).
