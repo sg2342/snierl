@@ -8,17 +8,18 @@
 
 -define(SERVER, ?MODULE).
 
-
 start_link() -> supervisor:start_link({local, ?SERVER}, ?MODULE, []).
-
 
 start_child() -> supervisor:start_child(?MODULE, []).
 
-
 init([]) ->
-    Flags = #{ strategy => simple_one_for_one },
-    Specs = [ #{ id => snierl_proxy
-               , restart => temporary
-               , shutdown => brutal_kill
-               , start => {snierl_proxy, start_link, []} }],
+    Flags = #{strategy => simple_one_for_one},
+    Specs = [
+        #{
+            id => snierl_proxy,
+            restart => temporary,
+            shutdown => brutal_kill,
+            start => {snierl_proxy, start_link, []}
+        }
+    ],
     {ok, {Flags, Specs}}.
