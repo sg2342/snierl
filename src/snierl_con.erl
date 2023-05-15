@@ -1,5 +1,7 @@
 -module(snierl_con).
 
+-define(SSL_HANDSHAKE_TIMEOUT, 1000).
+
 -behaviour(gen_statem).
 
 -export([accepted/1]).
@@ -33,7 +35,7 @@ handle_event(timeout, _, undefined, _) ->
     stop;
 handle_event(cast, {accepted, Socket}, undefined, #{}) ->
     {ok, Opts} = application:get_env(tls_opts),
-    tls_accept(ssl:handshake(Socket, [{log_level, info} | Opts], 1000)).
+    tls_accept(ssl:handshake(Socket, [Opts], ?SSL_HANDSHAKE_TIMEOUT)).
 
 tls_accept(
     {ok, HsSock, #{
