@@ -110,7 +110,7 @@ csr(Key, Host) ->
                     )}
             ]
     },
-    CsrI = #'CertificationRequestInfo'{
+    CSRInfo = #'CertificationRequestInfo'{
         version = v1,
         subject = {'rdnSequence', []},
         'subjectPKInfo' = #'CertificationRequestInfo_subjectPKInfo'{
@@ -128,8 +128,8 @@ csr(Key, Host) ->
         },
         attributes = [A]
     },
-    Csr = #'CertificationRequest'{
-        'certificationRequestInfo' = CsrI,
+    CSR = #'CertificationRequest'{
+        'certificationRequestInfo' = CSRInfo,
         'signatureAlgorithm' = #'CertificationRequest_signatureAlgorithm'{
             algorithm = ?'sha256WithRSAEncryption'
         },
@@ -137,10 +137,10 @@ csr(Key, Host) ->
             public_key:sign(
                 public_key:der_encode(
                     'CertificationRequestInfo',
-                    CsrI
+                    CSRInfo
                 ),
                 sha256,
                 Key
             )
     },
-    public_key:der_encode('CertificationRequest', Csr).
+    public_key:der_encode('CertificationRequest', CSR).

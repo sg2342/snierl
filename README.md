@@ -12,7 +12,7 @@ Test
 ----
 
 
-    $ rebar3 as test do dialyzer,xref,fmt,lint
+    $ ERL_AFLAGS="-enable-feature maybe_expr" rebar3 as test check
 
 Use
 -----
