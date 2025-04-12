@@ -34,8 +34,6 @@
             {reuse_sessions, false},
             {reuseaddr, true},
             {handshake, hello},
-	    {key, #{algorithm => eddsa, sign_fun => undefined}},
-	    {cert, <<>>},
             {versions, ['tlsv1.3', 'tlsv1.2']}
         ]}
     ]},

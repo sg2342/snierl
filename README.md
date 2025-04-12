@@ -12,7 +12,7 @@ Test
 ----
 
 
-    $ ERL_AFLAGS="-enable-feature maybe_expr" rebar3 as test check
+    $ rebar3 as test check
 
 Use
 -----
