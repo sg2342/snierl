@@ -86,10 +86,9 @@ alpn(Key, Host, KeyAuth) ->
     },
     public_key:pkix_sign(TBS, Key).
 
--spec csr(Key :: public_key:rsa_private_key(), Host :: string()) ->
-    CSR :: binary().
-csr(Key, Host) ->
-    A = #'AttributePKCS-10'{
+-if(?OTP_RELEASE =< 27).
+csr_attribute(Host) ->
+    #'AttributePKCS-10'{
         type = ?'pkcs-9-at-extensionRequest',
         values =
             [
@@ -109,7 +108,35 @@ csr(Key, Host) ->
                         ]
                     )}
             ]
-    },
+    }.
+-else.
+csr_attribute(Host) ->
+    #'Attribute'{
+        type = ?'pkcs-9-at-extensionRequest',
+        values =
+            [
+                {'asn1_OPENTYPE',
+                    public_key:der_encode(
+                        'ExtensionRequest',
+                        [
+                            #'Extension'{
+                                'extnID' = ?'id-ce-subjectAltName',
+                                critical = false,
+                                'extnValue' =
+                                    public_key:der_encode(
+                                        'SubjectAltName',
+                                        [{'dNSName', Host}]
+                                    )
+                            }
+                        ]
+                    )}
+            ]
+    }.
+-endif.
+
+-spec csr(Key :: public_key:rsa_private_key(), Host :: string()) ->
+    CSR :: binary().
+csr(Key, Host) ->
     CSRInfo = #'CertificationRequestInfo'{
         version = v1,
         subject = {'rdnSequence', []},
@@ -126,7 +153,7 @@ csr(Key, Host) ->
                 parameters = {'asn1_OPENTYPE', <<5, 0>>}
             }
         },
-        attributes = [A]
+        attributes = [csr_attribute(Host)]
     },
     CSR = #'CertificationRequest'{
         'certificationRequestInfo' = CSRInfo,
