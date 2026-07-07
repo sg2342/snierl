@@ -30,6 +30,31 @@ of_pem(PemBin, Host) ->
 
 -define(ALPN_EXT_ID, {1, 3, 6, 1, 5, 5, 7, 1, 31}).
 
+-if(?OTP_RELEASE =< 27).
+algorithm(signature) ->
+    #'SignatureAlgorithm'{
+        algorithm = ?'sha256WithRSAEncryption',
+        parameters = 'NULL'
+    };
+algorithm(public_key) ->
+    #'PublicKeyAlgorithm'{
+        algorithm = ?rsaEncryption,
+        parameters = 'NULL'
+    }.
+-else.
+-define(DER_NULL, <<5, 0>>).
+algorithm(signature) ->
+    #'SignatureAlgorithm'{
+        algorithm = ?'sha256WithRSAEncryption',
+        parameters = {asn1_OPENTYPE, ?DER_NULL}
+    };
+algorithm(public_key) ->
+    #'PublicKeyAlgorithm'{
+        algorithm = ?rsaEncryption,
+        parameters = {asn1_OPENTYPE, ?DER_NULL}
+    }.
+-endif.
+
 -spec alpn(Key :: public_key:rsa_private_key(), Host :: string(), KeyAuth :: binary()) ->
     DERCert :: binary().
 alpn(Key, Host, KeyAuth) ->
@@ -51,10 +76,7 @@ alpn(Key, Host, KeyAuth) ->
     TBS = #'OTPTBSCertificate'{
         version = v3,
         'serialNumber' = 15,
-        signature = #'SignatureAlgorithm'{
-            algorithm = ?'sha256WithRSAEncryption',
-            parameters = 'NULL'
-        },
+        signature = algorithm(signature),
         issuer = Subject,
         subject = Subject,
         validity = #'Validity'{
@@ -62,10 +84,7 @@ alpn(Key, Host, KeyAuth) ->
             'notAfter' = {'generalTime', NotAfter}
         },
         'subjectPublicKeyInfo' = #'OTPSubjectPublicKeyInfo'{
-            algorithm = #'PublicKeyAlgorithm'{
-                algorithm = ?rsaEncryption,
-                parameters = 'NULL'
-            },
+            algorithm = algorithm(public_key),
             'subjectPublicKey' = #'RSAPublicKey'{
                 modulus = Key#'RSAPrivateKey'.modulus,
                 'publicExponent' = Key#'RSAPrivateKey'.'publicExponent'
