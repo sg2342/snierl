@@ -15,8 +15,7 @@
         stdlib,
         ssl,
         acmerl,
-        inets,
-        jsone
+        inets
     ]},
     {env, [
         {listen, [

@@ -1,14 +1,11 @@
 -module(snierl_acme).
 
 -behaviour(acmerl_challenge).
--behaviour(acmerl_json).
 -behaviour(acmerl_http).
 -behaviour(gen_statem).
 
 %% snierl_con
 -export([set_hs_opts/2, alpn_lookup/1]).
-%% acmerl_json callbacks
--export([encode/2, decode/2]).
 %% acmerl_http callback
 -export([request/5]).
 %% acmerl_challenge callbacks:
@@ -33,10 +30,6 @@ deploy(D, _) -> gen_statem:call(?SERVER, {deploy, D}).
 remove(Name, _) -> gen_statem:cast(?SERVER, {remove, Name}).
 
 challenge_type() -> <<"tls-alpn-01">>.
-
-encode(Term, _) -> jsone:encode(Term).
-
-decode(Term, _) -> jsone:decode(Term).
 
 request(Method, Url, Headers, Body, _) ->
     request1(
@@ -88,7 +81,7 @@ init([]) -> {ok, undefined, #{alpn_validation => #{}}, 0}.
 handle_event(timeout, _, _State, M) ->
     Key = public_key:generate_key({rsa, 2048, 65537}),
     KeyDER = {'RSAPrivateKey', public_key:der_encode('RSAPrivateKey', Key)},
-    init_table(),
+    ok = init_table(),
     check_for_action(M#{
         alpn_key => Key,
         alpn_key_der => KeyDER
@@ -130,7 +123,7 @@ handle_event(
 handle_event(cast, {remove, Name}, _State, #{alpn_validation := V} = M) ->
     {keep_state, M#{alpn_validation => maps:remove(Name, V)}};
 handle_event(cast, {insert, {Name, Map}}, _State, _M) ->
-    dump_to_dets(do_insert(Name, Map)),
+    ok = dump_to_dets(do_insert(Name, Map)),
     keep_state_and_data.
 
 do_insert(Name, Map) ->
@@ -193,7 +186,7 @@ check_for_action2(false, H, _, _, Hosts) ->
     ets:delete(?TAB, H),
     Hosts;
 check_for_action2(true, H, Cutoff, Account, Hosts) ->
-    check_for_action3(ets:lookup(?TAB, H), Cutoff, Account),
+    _ = check_for_action3(ets:lookup(?TAB, H), Cutoff, Account),
     lists:delete(H, Hosts).
 
 check_for_action3([{H, #{expires := Ex}}], Cutoff, Account) when
@@ -206,14 +199,14 @@ check_for_action3(_, _, _) ->
 account({ok, FN}) -> account1(file:read_file(FN), FN).
 
 account1({ok, Bin}, _) ->
-    acmerl:import_account(jsone:decode(Bin));
+    acmerl:import_account(json:decode(Bin));
 account1(_, FN) ->
     {ok, Client} = new_client(),
     {ok, Account} = acmerl:new_account(
         Client,
         #{<<"termsOfServiceAgreed">> => true}
     ),
-    ok = file:write_file(FN, jsone:encode(acmerl:export_account(Account))),
+    ok = file:write_file(FN, json:encode(acmerl:export_account(Account))),
     {ok, Account}.
 
 acme_worker(Account, Name) ->
@@ -222,7 +215,7 @@ acme_worker(Account, Name) ->
             Key = public_key:generate_key({rsa, 2048, 65537}),
             CSR = snierl_crts:csr(Key, Name),
             KeyDER = {'RSAPrivateKey', public_key:der_encode('RSAPrivateKey', Key)},
-            Handler = JsonCodec = {?MODULE, []},
+            Handler = {?MODULE, []},
             {ok, Client} = new_client(),
             OrderOpts = #{
                 <<"identifiers">> =>
@@ -238,7 +231,6 @@ acme_worker(Account, Name) ->
             {ok, Deployed} = acmerl:deploy_challenges(
                 Account,
                 Handler,
-                JsonCodec,
                 Authzs
             ),
             ok = acmerl:validate_challenges(Client, Account, Handler, Deployed),
@@ -258,10 +250,7 @@ acme_worker(Account, Name) ->
 
 new_client() ->
     {ok, DirectoryUrl} = application:get_env(acme_directory_url),
-    acmerl:new_client(DirectoryUrl, #{
-        http_module => ?MODULE,
-        json_module => ?MODULE
-    }).
+    acmerl:new_client(DirectoryUrl, #{http_module => ?MODULE}).
 
 init_table() ->
     {ok, ?TAB} = open_dets(),
