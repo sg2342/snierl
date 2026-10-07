@@ -2,6 +2,8 @@
 
 -define(SSL_HANDSHAKE_TIMEOUT, 1000).
 
+-include_lib("kernel/include/logger.hrl").
+
 -behaviour(gen_statem).
 
 -export([accepted/1]).
@@ -51,6 +53,7 @@ tls_accept(_) ->
     stop.
 
 tls_accept1(HsSock, {HostName, #{hs_opts := acme} = M}) ->
+    ?LOG_DEBUG("~p -> ~p", [ssl:peername(HsSock), HostName]),
     tls_accept1(HsSock, snierl_acme:set_hs_opts(HostName, M));
 tls_accept1(HsSock, {HostName, #{hs_opts := Opts} = M}) ->
     tls_accept2(ssl:handshake_continue(HsSock, Opts), M#{sni => HostName});
